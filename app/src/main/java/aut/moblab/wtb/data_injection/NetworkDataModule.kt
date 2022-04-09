@@ -1,4 +1,10 @@
 package aut.moblab.wtb.data_injection
 
-class NetworkDataModule {
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkDataModule {
 }
