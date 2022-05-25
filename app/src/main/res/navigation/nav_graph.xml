@@ -7,7 +7,7 @@
     <fragment
         android:id="@+id/landingFragment"
         android:name="aut.moblab.wtb.ui.landing_dashboard.LandingFragment"
-        android:label="LandingFragment" >
+        android:label="LandingFragment">
         <action
             android:id="@+id/action_landingFragment_to_listsFragment"
             app:destination="@id/listsFragment" />
@@ -18,7 +18,7 @@
     <fragment
         android:id="@+id/listsFragment"
         android:name="aut.moblab.wtb.ui.lists.ListsFragment"
-        android:label="ListsFragment" >
+        android:label="ListsFragment">
         <action
             android:id="@+id/action_listsFragment_to_landingFragment"
             app:destination="@id/landingFragment" />
@@ -28,10 +28,14 @@
     </fragment>
     <fragment
         android:id="@+id/movieDetailsFragment"
-        android:name="aut.moblab.wtb.ui.movie_details.MovieDetailsFragment"
-        android:label="MovieDetailsFragment" >
+        android:name="aut.moblab.wtb.ui.movie_details.DetailsFragment"
+        android:label="MovieDetailsFragment">
         <action
             android:id="@+id/action_movieDetailsFragment_to_landingFragment"
             app:destination="@id/landingFragment" />
+        <argument
+            android:name="movieId"
+            android:defaultValue="tt0111161"
+            app:argType="string" />
     </fragment>
 </navigation>

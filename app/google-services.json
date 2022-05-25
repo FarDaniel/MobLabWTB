@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "380896574628",
+    "firebase_url": "https://daniel-4d412.firebaseio.com",
+    "project_id": "daniel-4d412",
+    "storage_bucket": "daniel-4d412.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:380896574628:android:76cf8b972817fb0c6b7a31",
+        "android_client_info": {
+          "package_name": "aut.moblab.wtb"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "380896574628-irkfjji7edv5b4g0j0g6fimah28sqcej.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYzWEVuqx7kjl6pgX0Ap5eVAU0aibrNoQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "380896574628-irkfjji7edv5b4g0j0g6fimah28sqcej.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

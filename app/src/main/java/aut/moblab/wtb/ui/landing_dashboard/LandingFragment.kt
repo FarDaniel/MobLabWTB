@@ -1,60 +1,84 @@
 package aut.moblab.wtb.ui.landing_dashboard
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import aut.moblab.wtb.R
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import aut.moblab.wtb.databinding.FragmentLandingBinding
+import aut.moblab.wtb.ui.landing_dashboard.movies_recycler_view.MoviesAdapter
+import dagger.hilt.android.AndroidEntryPoint
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+@AndroidEntryPoint
+class LandingFragment : Fragment(), NavigationHelper {
+    private lateinit var adapter: MoviesAdapter
+    override lateinit var navController: NavController
 
-/**
- * A simple [Fragment] subclass.
- * Use the [LandingFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class LandingFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var recyclerView: RecyclerView
+    lateinit var binding: FragmentLandingBinding
+    val viewModel: LandingViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_landing, container, false)
+    ): View {
+        binding = FragmentLandingBinding.inflate(inflater, container, false)
+        binding.lifecycleOwner = viewLifecycleOwner
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment LandingFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            LandingFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        recyclerView = binding.landingRecyclerview
+
+        navController = findNavController()
+
+        val layoutManager = GridLayoutManager(view.context, 2, GridLayoutManager.VERTICAL, false)
+
+        recyclerView.layoutManager = layoutManager
+        binding.fragment = this
+
+        adapter = MoviesAdapter(view.context, this)
+
+        initListeners()
+
+    }
+
+    override fun onResume() {
+        viewModel.update()
+        super.onResume()
+    }
+
+    private fun initListeners() {
+        viewModel.movies.observe(viewLifecycleOwner) {
+            adapter.clear()
+            adapter.addItems(it)
+            recyclerView.adapter = adapter
+        }
+
+    }
+
+    override fun watchDetails(movieId: String) {
+        navController.navigate(
+            LandingFragmentDirections.actionLandingFragmentToMovieDetailsFragment(movieId)
+        )
+    }
+
+    override fun addToWatched(movieId: String, title: String) {
+        viewModel.addMovieTag(movieId, title)
+        val pos = (recyclerView.layoutManager as GridLayoutManager).findFirstVisibleItemPosition()
+        adapter.removeItem(movieId)
+        recyclerView.adapter = adapter
+        binding.executePendingBindings()
+        (recyclerView.layoutManager as GridLayoutManager).scrollToPosition(pos)
+    }
+
+    fun navigateToLists() {
+        navController.navigate(LandingFragmentDirections.actionLandingFragmentToListsFragment())
     }
 }

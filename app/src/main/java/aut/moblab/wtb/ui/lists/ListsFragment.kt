@@ -1,60 +1,112 @@
 package aut.moblab.wtb.ui.lists
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import aut.moblab.wtb.R
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import aut.moblab.wtb.databinding.FragmentListsBinding
+import aut.moblab.wtb.ui.lists.tagged_movies_recycler_view.TaggedMovieAdapter
+import dagger.hilt.android.AndroidEntryPoint
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [ListsFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class ListsFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+@AndroidEntryPoint
+class ListsFragment : Fragment(), Navigator {
+    private lateinit var watchedAdapter: TaggedMovieAdapter
+    private lateinit var blackListAdapter: TaggedMovieAdapter
+    private lateinit var navController: NavController
+    private lateinit var watchedMoviesRecyclerView: RecyclerView
+    private lateinit var blackListRecyclerView: RecyclerView
+    lateinit var binding: FragmentListsBinding
+    val viewModel: ListsViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_lists, container, false)
+    ): View {
+        binding = FragmentListsBinding.inflate(inflater, container, false)
+        binding.lifecycleOwner = viewLifecycleOwner
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ListsFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            ListsFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        watchedMoviesRecyclerView = binding.listsWatchedRecyclerView
+        blackListRecyclerView = binding.listsBlackListRecyclerView
+
+        navController = findNavController()
+
+        binding.fragment = this
+
+        watchedMoviesRecyclerView.layoutManager =
+            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
+        blackListRecyclerView.layoutManager =
+            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
+        watchedAdapter = TaggedMovieAdapter(viewModel, this)
+        blackListAdapter = TaggedMovieAdapter(viewModel, this)
+
+        initListeners()
+
+    }
+
+    private fun initListeners() {
+        viewModel.watchedMovies.observe(viewLifecycleOwner) {
+            watchedAdapter.clear()
+            watchedAdapter.addItems(it)
+            watchedMoviesRecyclerView.adapter = watchedAdapter
+            binding.executePendingBindings()
+        }
+        viewModel.blackListedMovies.observe(viewLifecycleOwner) {
+            blackListAdapter.clear()
+            blackListAdapter.addItems(it)
+            blackListRecyclerView.adapter = blackListAdapter
+            binding.executePendingBindings()
+        }
+
+        addSwipeListener(ItemTouchHelper.LEFT, blackListAdapter, binding.listsBlackListRecyclerView)
+        addSwipeListener(
+            ItemTouchHelper.RIGHT,
+            blackListAdapter,
+            binding.listsBlackListRecyclerView
+        )
+        addSwipeListener(ItemTouchHelper.LEFT, watchedAdapter, binding.listsWatchedRecyclerView)
+        addSwipeListener(ItemTouchHelper.RIGHT, watchedAdapter, binding.listsWatchedRecyclerView)
+    }
+
+    private fun addSwipeListener(
+        direction: Int,
+        adapter: TaggedMovieAdapter,
+        recyclerView: RecyclerView
+    ) {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, direction) {
+            override fun onMove(
+                v: RecyclerView,
+                h: RecyclerView.ViewHolder,
+                t: RecyclerView.ViewHolder
+            ) = false
+
+            override fun onSwiped(h: RecyclerView.ViewHolder, dir: Int) {
+                val removed = adapter.removeAt(h.adapterPosition)
+                viewModel.removeTag(removed)
             }
+        }).attachToRecyclerView(recyclerView)
+    }
+
+    override fun navigateToDetails(movieId: String) {
+        navController.navigate(
+            ListsFragmentDirections.actionListsFragmentToMovieDetailsFragment(
+                movieId
+            )
+        )
+    }
+
+    override fun onResume() {
+        viewModel.refreshLists()
+        super.onResume()
     }
 }
